@@ -120,3 +120,35 @@ The dashboard proxies `/api`, `/auth`, `/metrics`, and `/agent` to the backend U
 ### Backend and agent development
 
 The Python environment is defined by [pyproject.toml](pyproject.toml) and targets Python 3.12. The platform container uses `uv run` to apply Alembic migrations, seed the database, and launch the FastAPI runtime. If you are iterating locally, keep the same environment variables in sync with the compose stack so the runtime and the migration scripts see the same database settings.
+
+## Operational Notes
+
+- [\.env.example](.env.example) is the source of truth for root environment values.
+- [backend/seed.py](backend/seed.py) refreshes the default admin password when the admin user already exists.
+- [platform/docker-compose.yaml](platform/docker-compose.yaml) is the authoritative service topology for the platform stack.
+- [dashboard/next.config.ts](dashboard/next.config.ts) is the source of API rewrite behavior for the browser.
+- [Target_Client/start.sh](Target_Client/start.sh) is the authoritative bootstrap path for the customer simulation.
+
+## Testing
+
+Run the tests in layers so you know what failed:
+
+- `pytest` for the Python repository tests.
+- `cd dashboard && npm run lint` for UI-level validation.
+- `python Target_Client/testing/test_layer0.py` for gateway and service reachability.
+- `python Target_Client/testing/test_layer1.py` for observability health and scrape-target validation.
+
+## Troubleshooting
+
+- If the dashboard loads but API requests fail, confirm that `API_URL` in the platform compose file still points to `http://sre-agent-api:8080`.
+- If the agent starts but cannot reason over incidents, check the LLM provider variables and confirm that the selected backend is reachable.
+- If the target client starts but the platform sees no metrics, verify that Prometheus and Loki are listening on the host ports used by the MCP servers.
+- If the admin login fails on a clean setup, confirm that the seed script ran and that `SEED_ADMIN_PASSWORD` matches the current `.env` value.
+
+## What To Read Next
+
+- [backend/README.md](backend/README.md) for the persistence and auth story.
+- [sre_agent/README.md](sre_agent/README.md) for the runtime and LangGraph story.
+- [dashboard/README.md](dashboard/README.md) for the UI story.
+- [edge_mcp_servers/README.md](edge_mcp_servers/README.md) for the MCP evidence layer.
+- [Target_Client/README.md](Target_Client/README.md) for the simulated customer system.
