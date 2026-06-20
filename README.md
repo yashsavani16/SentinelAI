@@ -96,4 +96,27 @@ That script starts the Target_Client stack, then the platform stack, then the ed
 - Agent/API docs: http://localhost:8080/docs
 - Target client gateway: http://localhost:8000
 
+## Development Workflows
 
+### Platform-only smoke test
+
+Use this when you want to validate the SaaS control plane without the noisy customer simulation:
+
+```bash
+cd platform
+docker compose up -d --build
+```
+
+### Dashboard development
+
+```bash
+cd dashboard
+npm ci
+npm run dev
+```
+
+The dashboard proxies `/api`, `/auth`, `/metrics`, and `/agent` to the backend URL. That means the browser only needs the Next.js origin, while the backend handles the service split.
+
+### Backend and agent development
+
+The Python environment is defined by [pyproject.toml](pyproject.toml) and targets Python 3.12. The platform container uses `uv run` to apply Alembic migrations, seed the database, and launch the FastAPI runtime. If you are iterating locally, keep the same environment variables in sync with the compose stack so the runtime and the migration scripts see the same database settings.
