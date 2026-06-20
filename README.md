@@ -49,3 +49,51 @@ For implementation details and diagram maintenance, see [docs/architecture/READM
 | [edge_mcp_servers/README.md](edge_mcp_servers/README.md) | How evidence is exposed from the edge and why MCP is used |
 | [Target_Client/README.md](Target_Client/README.md) | How incidents are generated in the demo environment |
 | [tests/README.md](tests/README.md) | Which behaviors are validated in code |
+
+## Quick Start
+
+### 1. Set up environment values
+
+Create a root `.env` from the template and verify the values that matter for your run mode:
+
+```bash
+cp .env.example .env
+```
+
+Minimum values to review:
+
+- `SECRET_KEY` for signing JWTs.
+- `LLM_PROVIDER` to select `ollama`, `groq`, or `gemini`.
+- `OLLAMA_BASE_URL` if you are using a local model.
+- `GROQ_API_KEY` if you are using Groq.
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB`.
+- `PROMETHEUS_URL`, `LOKI_URL`, `GITHUB_TOKEN`, `GITHUB_REPO`, and `K8S_TOKEN` when you connect to real edge systems.
+
+### 2. Start the platform stack
+
+Use the platform compose file for the control plane and dashboard:
+
+```bash
+cd platform
+docker compose up -d --build
+```
+
+This path is the fastest way to validate the backend, auth flow, database bootstrap, and dashboard rendering without the customer simulation. The helper script [platform/start.sh](platform/start.sh) does the same work and also guards against missing `.env` files.
+
+### 3. Start the full demo path
+
+If you want incidents, evidence, and UI behavior together, use the orchestration script at the repository root:
+
+```bash
+./main_start.sh
+```
+
+That script starts the Target_Client stack, then the platform stack, then the edge MCP relay. It is the closest thing to an end-to-end smoke test for the entire repo. On Windows, run it from Git Bash or WSL.
+
+### 4. Open the main surfaces
+
+- Dashboard: http://localhost:3002
+- Agent/API docs: http://localhost:8080/docs
+- Target client gateway: http://localhost:8000
+
+
